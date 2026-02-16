@@ -401,13 +401,13 @@
     <div class="card-title"><div class="icon">💡</div>Laufende Kosten / Jahr</div>
 
     <div class="slider-field">
-      <label>Instandhaltung <span id="inst-label">CHF 8'000/J (1.0%)</span></label>
+      <label>Instandhaltung <span id="inst-label">1.0% · CHF 8'000/J</span></label>
       <input type="range" id="instandhaltung" min="2000" max="30000" step="500" value="8000"/>
       <div class="hint">Faustregel: 1% des Kaufpreises pro Jahr</div>
     </div>
 
     <div class="slider-field">
-      <label>Nebenkosten (Heizung, Strom, Wasser etc.) <span id="neben-label">1.0% (CHF 8'000/J)</span></label>
+      <label>Nebenkosten (Heizung, Strom, Wasser etc.) <span id="neben-label">1.0% · CHF 8'000/J</span></label>
       <input type="range" id="nebenkosten" min="0" max="5" step="0.1" value="1.0"/>
       <div class="hint">Prozentsatz des Kaufpreises pro Jahr</div>
     </div>
@@ -555,11 +555,11 @@ function calc() {
 
   // Instandhaltung Prozentsatz berechnen und Label aktualisieren
   const instPct = kaufpreis > 0 ? (instandhaltung / kaufpreis * 100) : 0;
-  $('inst-label').textContent = `CHF ${fmt(instandhaltung)}/J (${instPct.toFixed(1)}%)`;
+  $('inst-label').textContent = `${instPct.toFixed(1)}% · CHF ${fmt(instandhaltung)}/J`;
 
   // Nebenkosten als Betrag berechnen (Prozent vom Kaufpreis) und Label aktualisieren
   const nebenkostenJahr = kaufpreis * (nebenkostenPct / 100);
-  $('neben-label').textContent = `${nebenkostenPct.toFixed(1)}% (CHF ${fmt(nebenkostenJahr)}/J)`;
+  $('neben-label').textContent = `${nebenkostenPct.toFixed(1)}% · CHF ${fmt(nebenkostenJahr)}/J`;
 
   // Monatszins
   const monatsZins    = (zinssatz / 100 / 12) * hypothek;
