@@ -362,46 +362,9 @@
       <div class="hint" id="ek-hint"></div>
     </div>
 
-    <div class="field">
-      <label>Kanton (Handänderungssteuer)</label>
-      <div class="input-wrap">
-        <select id="kanton">
-          <option value="0">Zürich (keine)</option>
-          <option value="0">Zug (keine)</option>
-          <option value="0">Schwyz (keine)</option>
-          <option value="0">Nidwalden (keine)</option>
-          <option value="0.015">Bern (1.5%)</option>
-          <option value="0.015">Luzern (1.5%)</option>
-          <option value="0.011">Basel-Stadt (1.1%)</option>
-          <option value="0.025">Aargau (2.5%)</option>
-          <option value="0.033">Genf (3.3%)</option>
-          <option value="0.025">Waadt (2.5%)</option>
-          <option value="0.023">Freiburg (2.3%)</option>
-          <option value="0.02">Wallis (2.0%)</option>
-          <option value="0.02">Tessin (2.0%)</option>
-          <option value="0.018">St. Gallen (1.8%)</option>
-          <option value="0.01">Thurgau (1.0%)</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Maklergebühr</label>
-      <div class="toggle-group" id="makler-group">
-        <button class="toggle-btn active" data-val="0">Kein Makler</button>
-        <button class="toggle-btn" data-val="0.02">2%</button>
-        <button class="toggle-btn" data-val="0.025">2.5%</button>
-        <button class="toggle-btn" data-val="0.03">3%</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Notarkosten</label>
-      <div class="input-wrap">
-        <input type="number" id="notarkosten" value="2000" min="0" step="100"/>
-        <span class="unit">CHF</span>
-      </div>
-      <div class="hint">Grundbucheintrag & Beurkundung (~0.3–0.5%)</div>
+    <div class="slider-field">
+      <label>Tragbarkeits-Einkommen (brutto/Jahr) <span id="eink-label">120'000</span></label>
+      <input type="range" id="einkommen" min="50000" max="500000" step="5000" value="120000"/>
     </div>
   </div>
 
@@ -437,11 +400,6 @@
         <button class="toggle-btn" data-val="0.02">2%</button>
       </div>
       <div class="hint">Bank verlangt oft mind. 1% p.a. bis 2/3 des Kaufpreises</div>
-    </div>
-
-    <div class="slider-field">
-      <label>Tragbarkeits-Einkommen (brutto/Jahr) <span id="eink-label">120'000</span></label>
-      <input type="range" id="einkommen" min="50000" max="500000" step="5000" value="120000"/>
     </div>
   </div>
 
@@ -561,7 +519,6 @@ const fmtChf = (n, dec=0) => n <= 0 ? '–' : 'CHF ' + fmt(n, dec);
 const BAR_COLORS = ['#c8a96e','#6ec8a0','#6eaec8','#c86e9a'];
 
 // ─── State ─────────────────────────────────────────────────────────────
-let makler = 0;
 let hypoTyp = 'fest';
 let amortRate = 0.01;
 
@@ -578,7 +535,6 @@ function initToggles(groupId, onchange) {
   });
 }
 
-initToggles('makler-group', v => { makler = parseFloat(v); });
 initToggles('hypo-group', v => {
   hypoTyp = v;
   $('zins-hint').textContent = v === 'fest'
@@ -607,10 +563,9 @@ $('einkommen').addEventListener('input', () => {
 });
 
 // ─── Main inputs ───────────────────────────────────────────────────────
-['kaufpreis','eigenkapital','notarkosten','versicherung','nebenkosten','eigenmietwert'].forEach(id => {
+['kaufpreis','eigenkapital','versicherung','nebenkosten','eigenmietwert'].forEach(id => {
   $(id).addEventListener('input', calc);
 });
-$('kanton').addEventListener('change', calc);
 
 // ─── Calculation ───────────────────────────────────────────────────────
 function calc() {
@@ -618,18 +573,14 @@ function calc() {
   const eigenkapital  = parseFloat($('eigenkapital').value)  || 0;
   const zinssatz      = parseFloat($('zinssatz').value)      || 0;
   const laufzeit      = parseInt($('laufzeit').value)        || 20;
-  const notarkosten   = parseFloat($('notarkosten').value)   || 0;
   const versicherung  = parseFloat($('versicherung').value)  || 0;
   const nebenkosten   = parseFloat($('nebenkosten').value)   || 0;
   const instandhaltung= parseFloat($('instandhaltung').value)|| 0;
-  const kantSteuersatz= parseFloat($('kanton').value)        || 0;
   const einkommen     = parseInt($('einkommen').value)       || 0;
 
   const hypothek      = Math.max(0, kaufpreis - eigenkapital);
   const ekPct         = kaufpreis > 0 ? (eigenkapital / kaufpreis * 100) : 0;
-  const handaenderung = kaufpreis * kantSteuersatz;
-  const maklerKosten  = kaufpreis * makler;
-  const einmalKosten  = notarkosten + handaenderung + maklerKosten;
+  const einmalKosten  = 0;
 
   // Monatszins
   const monatsZins    = (zinssatz / 100 / 12) * hypothek;
