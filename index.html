@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hypotheken-Vollkostenrechner Schweiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #181c26;
+      --surface2: #1e2333;
+      --border: #2a3050;
+      --accent: #c8a96e;
+      --accent2: #e8c98e;
+      --text: #e8e8f0;
+      --muted: #8890aa;
+      --danger: #e07070;
+      --success: #6ec8a0;
+      --radius: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0a0d14 0%, #141928 60%, #1a1428 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(200,169,110,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 700;
+      color: var(--accent2);
+      letter-spacing: -0.5px;
+      position: relative;
+    }
+    header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      font-weight: 300;
+      position: relative;
+    }
+
+    /* Layout */
+    .wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .wrapper { grid-template-columns: 1fr; padding: 1rem; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      animation: fadeIn 0.5s ease both;
+    }
+    .card.full { grid-column: 1 / -1; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.1s; }
+    .card:nth-child(3) { animation-delay: 0.15s; }
+    .card:nth-child(4) { animation-delay: 0.2s; }
+    .card:nth-child(5) { animation-delay: 0.25s; }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-title .icon {
+      width: 28px; height: 28px;
+      background: rgba(200,169,110,0.12);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    /* Inputs */
+    .field { margin-bottom: 1.1rem; }
+    .field label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .input-wrap:focus-within {
+      border-color: var(--accent);
+    }
+    .input-wrap input, .input-wrap select {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      padding: 0.65rem 0.85rem;
+    }
+    .input-wrap select option { background: #1e2333; }
+    .unit {
+      padding: 0 0.75rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-left: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+    .hint.warn { color: var(--danger); }
+    .hint.ok { color: var(--success); }
+
+    /* Slider */
+    .slider-field { margin-bottom: 1.1rem; }
+    .slider-field label {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; color: var(--muted);
+      margin-bottom: 0.4rem; font-weight: 500;
+    }
+    .slider-field label span { color: var(--accent2); font-weight: 600; }
+    input[type=range] {
+      width: 100%; appearance: none;
+      height: 4px; border-radius: 2px;
+      background: var(--border);
+      outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px; height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(200,169,110,0.2);
+      transition: box-shadow 0.2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 0 6px rgba(200,169,110,0.25);
+    }
+
+    /* Toggle buttons */
+    .toggle-group {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      margin-bottom: 1.1rem;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .toggle-btn.active {
+      background: rgba(200,169,110,0.15);
+      border-color: var(--accent);
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    /* Results */
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .result-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .result-box:hover { transform: translateY(-2px); }
+    .result-box .label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+    .result-box .value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+    .result-box .sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+    .result-box.highlight {
+      background: linear-gradient(135deg, rgba(200,169,110,0.12), rgba(200,169,110,0.05));
+      border-color: rgba(200,169,110,0.4);
+    }
+    .result-box.highlight .value { color: var(--accent); font-size: 1.55rem; }
+
+    /* Cost breakdown bar */
+    .breakdown-title {
+      font-size: 0.82rem; color: var(--muted);
+      margin-bottom: 0.75rem; font-weight: 500;
+    }
+    .bar-item {
+      margin-bottom: 0.7rem;
+    }
+    .bar-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    .bar-label span { color: var(--muted); }
+    .bar-track {
+      height: 6px; background: var(--border);
+      border-radius: 3px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    /* Feasibility */
+    .feasibility {
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-top: 1.25rem;
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+    }
+    .feasibility.ok   { background: rgba(110,200,160,0.1); border: 1px solid rgba(110,200,160,0.3); color: var(--success); }
+    .feasibility.warn { background: rgba(224,210,112,0.1); border: 1px solid rgba(224,210,112,0.3); color: #e0d270; }
+    .feasibility.bad  { background: rgba(224,112,112,0.1); border: 1px solid rgba(224,112,112,0.3); color: var(--danger); }
+    .feasibility .emoji { font-size: 1.2rem; flex-shrink: 0; }
+
+    /* Amortization table */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 0.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    thead tr { background: var(--surface2); }
+    thead th {
+      padding: 0.7rem 0.9rem;
+      text-align: right; color: var(--muted);
+      font-weight: 500; white-space: nowrap;
+    }
+    thead th:first-child { text-align: left; }
+    tbody tr { border-top: 1px solid rgba(42,48,80,0.6); transition: background 0.15s; }
+    tbody tr:hover { background: rgba(200,169,110,0.04); }
+    tbody td {
+      padding: 0.6rem 0.9rem;
+      text-align: right; color: var(--text);
+    }
+    tbody td:first-child { text-align: left; color: var(--muted); }
+    tbody td.accent { color: var(--accent2); font-weight: 600; }
+
+    /* Footer note */
+    .footnote {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding: 1rem 0 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏡 Hypotheken-Vollkostenrechner</h1>
+  <p>Schweiz · Alle Kosten auf einen Blick</p>
+</header>
+
+<div class="wrapper">
+
+  <!-- KARTE 1: Kaufpreis & Eigenkapital -->
+  <div class="card">
+    <div class="card-title"><div class="icon">🏠</div>Kaufpreis & Eigenkapital</div>
+
+    <div class="field">
+      <label>Kaufpreis</label>
+      <div class="input-wrap">
+        <input type="number" id="kaufpreis" value="800000" min="50000" step="5000"/>
+        <span class="unit">CHF</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Eigenkapital</label>
+      <div class="input-wrap">
+        <input type="number" id="eigenkapital" value="200000" min="0" step="5000"/>
+        <span class="unit">CHF</span>
+      </div>
+      <div class="hint" id="ek-hint"></div>
+    </div>
+
+    <div class="field">
+      <label>Kanton (Handänderungssteuer)</label>
+      <div class="input-wrap">
+        <select id="kanton">
+          <option value="0">Zürich (keine)</option>
+          <option value="0">Zug (keine)</option>
+          <option value="0">Schwyz (keine)</option>
+          <option value="0">Nidwalden (keine)</option>
+          <option value="0.015">Bern (1.5%)</option>
+          <option value="0.015">Luzern (1.5%)</option>
+          <option value="0.011">Basel-Stadt (1.1%)</option>
+          <option value="0.025">Aargau (2.5%)</option>
+          <option value="0.033">Genf (3.3%)</option>
+          <option value="0.025">Waadt (2.5%)</option>
+          <option value="0.023">Freiburg (2.3%)</option>
+          <option value="0.02">Wallis (2.0%)</option>
+          <option value="0.02">Tessin (2.0%)</option>
+          <option value="0.018">St. Gallen (1.8%)</option>
+          <option value="0.01">Thurgau (1.0%)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Maklergebühr</label>
+      <div class="toggle-group" id="makler-group">
+        <button class="toggle-btn active" data-val="0">Kein Makler</button>
+        <button class="toggle-btn" data-val="0.02">2%</button>
+        <button class="toggle-btn" data-val="0.025">2.5%</button>
+        <button class="toggle-btn" data-val="0.03">3%</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Notarkosten</label>
+      <div class="input-wrap">
+        <input type="number" id="notarkosten" value="2000" min="0" step="100"/>
+        <span class="unit">CHF</span>
+      </div>
+      <div class="hint">Grundbucheintrag & Beurkundung (~0.3–0.5%)</div>
+    </div>
+  </div>
+
+  <!-- KARTE 2: Hypothek -->
+  <div class="card">
+    <div class="card-title"><div class="icon">📊</div>Hypothek & Zinsen</div>
+
+    <div class="field">
+      <label>Hypothekarmodell</label>
+      <div class="toggle-group" id="hypo-group">
+        <button class="toggle-btn active" data-val="fest">Festhypothek</button>
+        <button class="toggle-btn" data-val="saron">SARON-Hypothek</button>
+      </div>
+    </div>
+
+    <div class="slider-field">
+      <label>Zinssatz <span id="zins-label">1.80%</span></label>
+      <input type="range" id="zinssatz" min="0.5" max="5" step="0.05" value="1.80"/>
+      <div class="hint" id="zins-hint">Typischer Festhypothek-Satz (5J): 1.5–2.2%</div>
+    </div>
+
+    <div class="slider-field">
+      <label>Laufzeit <span id="laufzeit-label">20 Jahre</span></label>
+      <input type="range" id="laufzeit" min="5" max="30" step="1" value="20"/>
+    </div>
+
+    <div class="field">
+      <label>Amortisation (jährlich)</label>
+      <div class="toggle-group" id="amort-group">
+        <button class="toggle-btn" data-val="0">Keine</button>
+        <button class="toggle-btn active" data-val="0.01">1% (direkt)</button>
+        <button class="toggle-btn" data-val="0.015">1.5%</button>
+        <button class="toggle-btn" data-val="0.02">2%</button>
+      </div>
+      <div class="hint">Bank verlangt oft mind. 1% p.a. bis 2/3 des Kaufpreises</div>
+    </div>
+
+    <div class="slider-field">
+      <label>Tragbarkeits-Einkommen (brutto/Jahr) <span id="eink-label">120'000</span></label>
+      <input type="range" id="einkommen" min="50000" max="500000" step="5000" value="120000"/>
+    </div>
+  </div>
+
+  <!-- KARTE 3: Laufende Kosten -->
+  <div class="card">
+    <div class="card-title"><div class="icon">💡</div>Laufende Kosten / Jahr</div>
+
+    <div class="slider-field">
+      <label>Instandhaltung <span id="inst-label">8'000</span> CHF/J</label>
+      <input type="range" id="instandhaltung" min="2000" max="30000" step="500" value="8000"/>
+      <div class="hint">Faustregel: 1% des Kaufpreises pro Jahr</div>
+    </div>
+
+    <div class="field">
+      <label>Gebäudeversicherung</label>
+      <div class="input-wrap">
+        <input type="number" id="versicherung" value="1200" min="0" step="100"/>
+        <span class="unit">CHF/J</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nebenkosten (Heizung, Strom, Wasser etc.)</label>
+      <div class="input-wrap">
+        <input type="number" id="nebenkosten" value="4800" min="0" step="100"/>
+        <span class="unit">CHF/J</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Steuerwert-Anteil (Eigenmietwert-Schätzung)</label>
+      <div class="input-wrap">
+        <input type="number" id="eigenmietwert" value="20000" min="0" step="500"/>
+        <span class="unit">CHF/J</span>
+      </div>
+      <div class="hint">Wird in CH als Einkommen versteuert (~60–70% des Marktmietwerts)</div>
+    </div>
+  </div>
+
+  <!-- KARTE 4: Ergebnisse -->
+  <div class="card">
+    <div class="card-title"><div class="icon">✨</div>Ergebnis & Zusammenfassung</div>
+
+    <div class="result-grid">
+      <div class="result-box highlight">
+        <div class="label">Monatliche Totalkosten</div>
+        <div class="value" id="r-monat">–</div>
+        <div class="sub">Hypothek + Unterhalt</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Hypothek (Nennwert)</div>
+        <div class="value" id="r-hypo">–</div>
+        <div class="sub" id="r-hypo-pct">–</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Monatliche Zinsen</div>
+        <div class="value" id="r-zinsm">–</div>
+        <div class="sub">Zinskosten/Monat</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Amortisation/Monat</div>
+        <div class="value" id="r-amortm">–</div>
+        <div class="sub">Rückzahlung</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Nebenkosten+Unterhalt</div>
+        <div class="value" id="r-laufm">–</div>
+        <div class="sub">pro Monat</div>
+      </div>
+      <div class="result-box">
+        <div class="label">Einmalkosten total</div>
+        <div class="value" id="r-einmal">–</div>
+        <div class="sub">Notar, Steuer, Makler</div>
+      </div>
+    </div>
+
+    <div class="breakdown-title">Kostenverteilung (monatlich)</div>
+    <div id="breakdown-bars"></div>
+
+    <div id="feasibility-box"></div>
+  </div>
+
+  <!-- KARTE 5: Amortisationsplan -->
+  <div class="card full">
+    <div class="card-title"><div class="icon">📅</div>Amortisationsplan (alle 5 Jahre)</div>
+    <div class="table-wrap">
+      <table id="amort-table">
+        <thead>
+          <tr>
+            <th>Jahr</th>
+            <th>Hypothek Restschuld</th>
+            <th>Gezahlte Zinsen (kum.)</th>
+            <th>Getilgt (kum.)</th>
+            <th>Eigenkapital %</th>
+          </tr>
+        </thead>
+        <tbody id="amort-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footnote">
+    Alle Angaben ohne Gewähr. Dieser Rechner dient der Orientierung und ersetzt keine Bankberatung. © 2025 Hypothekenrechner CH
+  </div>
+
+</div><!-- .wrapper -->
+
+<script>
+// ─── Helpers ───────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = (n, dec=0) => {
+  if (isNaN(n) || !isFinite(n)) return '–';
+  return new Intl.NumberFormat('de-CH', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(n);
+};
+const fmtChf = (n, dec=0) => n <= 0 ? '–' : 'CHF ' + fmt(n, dec);
+
+const BAR_COLORS = ['#c8a96e','#6ec8a0','#6eaec8','#c86e9a'];
+
+// ─── State ─────────────────────────────────────────────────────────────
+let makler = 0;
+let hypoTyp = 'fest';
+let amortRate = 0.01;
+
+// ─── Toggle buttons ────────────────────────────────────────────────────
+function initToggles(groupId, onchange) {
+  const grp = $(groupId);
+  grp.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      grp.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onchange(btn.dataset.val);
+      calc();
+    });
+  });
+}
+
+initToggles('makler-group', v => { makler = parseFloat(v); });
+initToggles('hypo-group', v => {
+  hypoTyp = v;
+  $('zins-hint').textContent = v === 'fest'
+    ? 'Typischer Festhypothek-Satz (5J): 1.5–2.2%'
+    : 'SARON aktuell ca. 1.0–1.5% + Marge ~0.8%';
+});
+initToggles('amort-group', v => { amortRate = parseFloat(v); });
+
+// ─── Sliders ───────────────────────────────────────────────────────────
+$('zinssatz').addEventListener('input', () => {
+  $('zins-label').textContent = parseFloat($('zinssatz').value).toFixed(2) + '%';
+  calc();
+});
+$('laufzeit').addEventListener('input', () => {
+  $('laufzeit-label').textContent = $('laufzeit').value + ' Jahre';
+  calc();
+});
+$('instandhaltung').addEventListener('input', () => {
+  $('inst-label').textContent = fmt(parseInt($('instandhaltung').value));
+  calc();
+});
+$('einkommen').addEventListener('input', () => {
+  const v = parseInt($('einkommen').value);
+  $('eink-label').textContent = fmt(v);
+  calc();
+});
+
+// ─── Main inputs ───────────────────────────────────────────────────────
+['kaufpreis','eigenkapital','notarkosten','versicherung','nebenkosten','eigenmietwert'].forEach(id => {
+  $(id).addEventListener('input', calc);
+});
+$('kanton').addEventListener('change', calc);
+
+// ─── Calculation ───────────────────────────────────────────────────────
+function calc() {
+  const kaufpreis     = parseFloat($('kaufpreis').value)     || 0;
+  const eigenkapital  = parseFloat($('eigenkapital').value)  || 0;
+  const zinssatz      = parseFloat($('zinssatz').value)      || 0;
+  const laufzeit      = parseInt($('laufzeit').value)        || 20;
+  const notarkosten   = parseFloat($('notarkosten').value)   || 0;
+  const versicherung  = parseFloat($('versicherung').value)  || 0;
+  const nebenkosten   = parseFloat($('nebenkosten').value)   || 0;
+  const instandhaltung= parseFloat($('instandhaltung').value)|| 0;
+  const kantSteuersatz= parseFloat($('kanton').value)        || 0;
+  const einkommen     = parseInt($('einkommen').value)       || 0;
+
+  const hypothek      = Math.max(0, kaufpreis - eigenkapital);
+  const ekPct         = kaufpreis > 0 ? (eigenkapital / kaufpreis * 100) : 0;
+  const handaenderung = kaufpreis * kantSteuersatz;
+  const maklerKosten  = kaufpreis * makler;
+  const einmalKosten  = notarkosten + handaenderung + maklerKosten;
+
+  // Monatszins
+  const monatsZins    = (zinssatz / 100 / 12) * hypothek;
+  // Amortisation
+  const amortJahr     = hypothek * amortRate;
+  const amortMonat    = amortJahr / 12;
+  // Laufende Kosten pro Monat
+  const laufendMonat  = (versicherung + nebenkosten + instandhaltung) / 12;
+
+  const totalMonat    = monatsZins + amortMonat + laufendMonat;
+
+  // Eigenkapital-Hint
+  const ekHint = $('ek-hint');
+  if (eigenkapital < kaufpreis * 0.1) {
+    ekHint.textContent = '⚠ Weniger als 10% EK – Bankfinanzierung meist nicht möglich.';
+    ekHint.className = 'hint warn';
+  } else if (eigenkapital < kaufpreis * 0.2) {
+    ekHint.textContent = `ℹ ${ekPct.toFixed(1)}% EK – mind. 10% EK ohne Pensionskasse, 20% empfohlen.`;
+    ekHint.className = 'hint warn';
+  } else {
+    ekHint.textContent = `✔ ${ekPct.toFixed(1)}% Eigenkapital – Gut (mind. 20% empfohlen).`;
+    ekHint.className = 'hint ok';
+  }
+
+  // Results
+  $('r-monat').textContent  = fmtChf(totalMonat);
+  $('r-hypo').textContent   = fmtChf(hypothek);
+  $('r-hypo-pct').textContent = `${ekPct.toFixed(1)}% Eigenkapital`;
+  $('r-zinsm').textContent  = fmtChf(monatsZins);
+  $('r-amortm').textContent = fmtChf(amortMonat);
+  $('r-laufm').textContent  = fmtChf(laufendMonat);
+  $('r-einmal').textContent = fmtChf(einmalKosten);
+
+  // Breakdown bars
+  const bars = [
+    { label: 'Zinsen', val: monatsZins, color: BAR_COLORS[0] },
+    { label: 'Amortisation', val: amortMonat, color: BAR_COLORS[1] },
+    { label: 'Unterhalt & Versicherung', val: (versicherung + instandhaltung) / 12, color: BAR_COLORS[2] },
+    { label: 'Nebenkosten', val: nebenkosten / 12, color: BAR_COLORS[3] },
+  ];
+  const maxVal = bars.reduce((s, b) => s + b.val, 0) || 1;
+  $('breakdown-bars').innerHTML = bars.map(b => `
+    <div class="bar-item">
+      <div class="bar-label">${b.label} <span>CHF ${fmt(b.val)}/Mt.</span></div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(b.val/maxVal*100).toFixed(1)}%;background:${b.color}"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // Tragbarkeit (Schweizer Richtwert: kalkulatorischer Zins 5%, 1% Amort, 1% Unterhalt ≤ 1/3 Bruttoeinkommen)
+  const kalkulZins = hypothek * 0.05 / 12;
+  const kalkulAmort = hypothek * 0.01 / 12;
+  const kalkulUnterhalt = kaufpreis * 0.01 / 12;
+  const kalkulTotal = kalkulZins + kalkulAmort + kalkulUnterhalt;
+  const maxKosten = einkommen / 12 / 3;
+  const tragPct = einkommen > 0 ? (kalkulTotal / (einkommen / 12) * 100).toFixed(1) : '–';
+
+  let feasClass, feasText;
+  if (einkommen === 0) {
+    feasClass = 'warn'; feasText = 'Bitte Einkommen eingeben um Tragbarkeit zu prüfen.';
+  } else if (kalkulTotal <= maxKosten) {
+    feasClass = 'ok';
+    feasText = `✔ Tragbar: Die kalkulatorischen Kosten (CHF ${fmt(kalkulTotal)}/Mt. bei 5% Zins) entsprechen ${tragPct}% des Bruttoeinkommens – unter der Bankengrenze von 33%.`;
+  } else if (kalkulTotal <= maxKosten * 1.15) {
+    feasClass = 'warn';
+    feasText = `⚠ Knapp: Die kalkulatorischen Kosten (CHF ${fmt(kalkulTotal)}/Mt.) entsprechen ${tragPct}% des Bruttoeinkommens – über der 33%-Grenze. Banken lehnen häufig ab.`;
+  } else {
+    feasClass = 'bad';
+    feasText = `✗ Nicht tragbar: ${tragPct}% des Einkommens würden für die Hypothek benötigt (Grenze: 33%). Kaufpreis senken oder Eigenkapital erhöhen.`;
+  }
+  $('feasibility-box').innerHTML = `<div class="feasibility ${feasClass}"><span class="emoji">${feasClass==='ok'?'✅':feasClass==='warn'?'⚠️':'❌'}</span><span>${feasText}</span></div>`;
+
+  // Amortisationsplan
+  buildTable(hypothek, zinssatz, amortRate);
+}
+
+function buildTable(hypo, zinsPct, amortRt) {
+  const tbody = $('amort-body');
+  tbody.innerHTML = '';
+  let restschuld = hypo;
+  let kumulZins = 0;
+  let kumulTilgung = 0;
+  const kaufpreis = parseFloat($('kaufpreis').value) || 1;
+  const laufzeit = parseInt($('laufzeit').value) || 20;
+
+  for (let j = 1; j <= laufzeit; j++) {
+    const jahresZins = restschuld * zinsPct / 100;
+    const jahresTilgung = restschuld * amortRt;
+    kumulZins += jahresZins;
+    kumulTilgung += jahresTilgung;
+    restschuld = Math.max(0, restschuld - jahresTilgung);
+    const ekPct = Math.min(100, (1 - restschuld / kaufpreis) * 100);
+
+    if (j % 5 === 0 || j === 1 || j === laufzeit) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>Jahr ${j}</td>
+        <td class="${restschuld < hypo * 0.67 ? 'accent' : ''}">CHF ${fmt(restschuld)}</td>
+        <td>CHF ${fmt(kumulZins)}</td>
+        <td>CHF ${fmt(kumulTilgung)}</td>
+        <td>${ekPct.toFixed(1)}%</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────
+calc();
+</script>
+</body>
+</html>
