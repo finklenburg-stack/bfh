@@ -14,7 +14,7 @@ steps:
     inputs:
       knownHostsEntry: $(SSH_KNOWN_HOSTS)
       sshPublicKey: $(SSH_PUBLIC_KEY)
-      sshKeySecureFile: sshKeySecureFile
+      sshKeySecureFile: azure_pipeline
     displayName: 'SSH Key einrichten'
 
   - script: |
