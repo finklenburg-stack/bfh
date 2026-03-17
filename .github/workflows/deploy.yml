@@ -23,5 +23,5 @@ jobs:
           path: ./
           remote_path: /home/finklenb/public_html/bfh/
           remote_host: finklenburg.ch
-          remote_user: bfh
+          remote_user: finklenb
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
