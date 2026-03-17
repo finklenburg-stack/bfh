@@ -1,3 +1,6 @@
+variables:
+  - group: cyon
+
 trigger:
   branches:
     include:
@@ -7,25 +10,13 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-  # SSH-Key einrichten
   - task: InstallSSHKey@0
     inputs:
       knownHostsEntry: $(SSH_KNOWN_HOSTS)
       sshPublicKey: $(SSH_PUBLIC_KEY)
       sshKeySecureFile: azure_pipeline
+    displayName: 'SSH Key einrichten'
 
-  # Build-Schritt (Beispiel Node.js, anpassen je nach Projekt)
   - script: |
-      npm install
-      npm run build
-    displayName: 'Build'
-
-  # Dateien per SSH/SCP deployen
-  - script: |
-      scp -r ./dist/* $(SSH_USER)@$(SSH_HOST):/var/www/meinprojekt/
-    displayName: 'Deploy via SCP'
-
-  # Oder: Befehle auf Server ausfuehren
-  - script: |
-      ssh $(SSH_USER)@$(SSH_HOST) "cd /var/www/meinprojekt && pm2 restart app"
-    displayName: 'Restart App'
+      scp -r ./* bfh@bfh.finklenburg.ch:/home/finklenb/public_html/bfh/
+    displayName: 'Deploy to Cyon'
