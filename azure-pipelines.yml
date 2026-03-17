@@ -1,17 +1,31 @@
-# HTML
-# Archive your static HTML project and save it with the build record.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  branches:
+    include:
+      - main
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(build.sourcesDirectory)'
-    includeRootFolder: false
-- task: PublishBuildArtifacts@1
+  # SSH-Key einrichten
+  - task: InstallSSHKey@0
+    inputs:
+      knownHostsEntry: $(SSH_KNOWN_HOSTS)
+      sshPublicKey: $(SSH_PUBLIC_KEY)
+      sshKeySecureFile: azure_pipeline
+
+  # Build-Schritt (Beispiel Node.js, anpassen je nach Projekt)
+  - script: |
+      npm install
+      npm run build
+    displayName: 'Build'
+
+  # Dateien per SSH/SCP deployen
+  - script: |
+      scp -r ./dist/* $(SSH_USER)@$(SSH_HOST):/var/www/meinprojekt/
+    displayName: 'Deploy via SCP'
+
+  # Oder: Befehle auf Server ausfuehren
+  - script: |
+      ssh $(SSH_USER)@$(SSH_HOST) "cd /var/www/meinprojekt && pm2 restart app"
+    displayName: 'Restart App'
